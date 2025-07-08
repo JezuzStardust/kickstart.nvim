@@ -520,7 +520,7 @@ require('lazy').setup({
       { 'j-hui/fidget.nvim', opts = {} },
 
       -- Allows extra capabilities provided by blink.cmp
-      'saghen/blink.cmp',
+      { 'saghen/blink.cmp' },
     },
     config = function()
       -- Brief aside: **What is LSP?**
@@ -870,6 +870,26 @@ require('lazy').setup({
           -- },
         },
         opts = {},
+        config = function()
+          local path_snippet = vim.fn.stdpath 'config' .. '/snippets'
+          -- vim.api.nvim_echo({ { path_snippet } }, true, {})
+          require('luasnip.loaders.from_lua').load { paths = path_snippet }
+          local ls = require 'luasnip'
+          -- vim.keymap.set({ 'i' }, '<C-K>', function()
+          --   ls.expand()
+          -- end, { silent = true })
+          -- vim.keymap.set({ 'i', 's' }, '<C-L>', function()
+          --   ls.jump(1)
+          -- end, { silent = true })
+          -- vim.keymap.set({ 'i', 's' }, '<C-J>', function()
+          --   ls.jump(-1)
+          -- end, { silent = true })
+          vim.keymap.set({ 'i', 's' }, '<C-;>', function() -- Cannot be set with blink.cmp below.
+            if ls.choice_active() then
+              ls.change_choice(1)
+            end
+          end, { silent = true })
+        end,
       },
       'folke/lazydev.nvim',
     },
@@ -877,6 +897,11 @@ require('lazy').setup({
     --- @type blink.cmp.Config
     opts = {
       keymap = {
+        ['<C-E>'] = false,
+        ['<C-K>'] = { 'select_and_accept', 'fallback' },
+        ['<C-L>'] = { 'snippet_forward', 'fallback' },
+        ['<C-J>'] = { 'snippet_backward', 'fallback' },
+
         -- 'default' (recommended) for mappings similar to built-in completions
         --   <c-y> to accept ([y]es) the completion.
         --    This will auto-import if your LSP supports it.
@@ -885,7 +910,7 @@ require('lazy').setup({
         -- 'enter' for enter to accept
         -- 'none' for no mappings
         --
-        -- For an understanding of why the 'default' preset is recommended,
+        -- For an understanding of why the 'default' preet is recommended,
         -- you will need to read `:help ins-completion`
         --
         -- No, but seriously. Please read `:help ins-completion`, it is really good!
