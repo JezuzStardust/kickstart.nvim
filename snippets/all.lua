@@ -11,4 +11,5 @@ return {
       end, {}),
     })
   ),
+  s('test', { t '\\begin{equation}', i(1), t '\\end{equation}' }),
 }

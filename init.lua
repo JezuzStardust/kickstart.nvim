@@ -190,6 +190,9 @@ vim.opt.spellfile = vim.fn.stdpath 'config' .. '/spell/en.utf-8.add'
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
+-- Edit init.lua
+vim.keymap.set('n', '<leader>ev', '<cmd>e $MYVIMRC<cr>', { desc = 'Edit init.lua' })
+
 -- Exit insert mode.
 vim.keymap.set('i', 'jk', '<Esc>', { desc = 'Exit insert mode' })
 
@@ -869,8 +872,9 @@ require('lazy').setup({
           --   end,
           -- },
         },
-        opts = {},
-        config = function()
+        opts = { enable_autosnippets = true },
+        config = function(_, opts)
+          require('luasnip').config.setup(opts)
           local path_snippet = vim.fn.stdpath 'config' .. '/snippets'
           -- vim.api.nvim_echo({ { path_snippet } }, true, {})
           require('luasnip.loaders.from_lua').load { paths = path_snippet }
@@ -888,7 +892,7 @@ require('lazy').setup({
             if ls.choice_active() then
               ls.change_choice(1)
             end
-          end, { silent = true })
+          end, { silent = true, desc = 'Lua Snip change choice.' })
         end,
       },
       'folke/lazydev.nvim',
@@ -1041,6 +1045,7 @@ require('lazy').setup({
         --  If you are experiencing weird indenting issues, add the language to
         --  the list of additional_vim_regex_highlighting and disabled languages for indent.
         additional_vim_regex_highlighting = { 'ruby' },
+        disable = { 'latex' },
       },
       indent = { enable = true, disable = { 'ruby' } },
     },
