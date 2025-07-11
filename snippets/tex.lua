@@ -60,19 +60,21 @@ return {
   -- Math variables
   s('alpha', { t '\\alpha' }, { condition = math }),
   s('beta', { t '\\beta' }, { condition = math }),
+  s('chi', { t '\\chi' }, { condition = math }),
+  s('delta', { t '\\delta' }, { condition = math }),
+  s('epsilon', { t '\\epsion' }, { condition = math }),
   s('gamma', { t '\\gamma' }, { condition = math }),
   s('lambda', { t '\\lambda' }, { condition = math }),
-  s('hbar', { t '\\hbar' }, { condition = math }),
+  s('omega', { t '\\omega' }, { condition = math }),
+  s('psi', { t '\\psi' }, { condition = math }),
   s('rho', { t '\\rho' }, { condition = math }),
   s('sigma', { t '\\sigma' }, { condition = math }),
-  s('delta', { t '\\delta' }, { condition = math }),
-  s('chi', { t '\\chi' }, { condition = math }),
+  s('theta', { t '\\theta' }, { condition = math }),
   s('xi', { t '\\xi' }, { condition = math }),
-  s('psi', { t '\\psi' }, { condition = math }),
-  s('pi', { t '\\pi' }, { condition = math }),
   s('zeta', { t '\\zeta' }, { condition = math }),
-  s('omega', { t '\\omega' }, { condition = math }),
-  s('epsilon', { t '\\epsion' }, { condition = math }),
+
+  s('pi', { t '\\pi' }, { condition = math }),
+  s('hbar', { t '\\hbar' }, { condition = math }),
 
   -- Math symbols
   s('inf', { t '\\infty' }, { condition = math }),
@@ -84,6 +86,8 @@ return {
   s('xx', { t '\\cross' }, { condition = math }),
   s('cdot', { t '\\cdot' }, { condition = math }),
   s('nabla', { t '\\nabla' }, { condition = math }),
+  s('imp', { t '\\implies' }, { condition = math }),
+  s('to', { t '\\to' }, { condition = math }),
 
   -- Math functions
   s('sin', { t '\\sin' }, { condition = math }),
@@ -94,17 +98,31 @@ return {
   s('arctan', { t '\\arctan' }, { condition = math }),
   s('log', { t '\\log' }, { condition = math }), -- Needs look behind!
 
-  -- Math Constructs
+  -- Function parameters
+  s({ trig = 'ox', wordTrig = false }, { t '(x)' }, { condition = math }),
+  s({ trig = 'oy', wordTrig = false }, { t '(y)' }, { condition = math }),
+  s({ trig = 'oz', wordTrig = false }, { t '(z)' }, { condition = math }),
+  s({ trig = 'ot', wordTrig = false }, { t '(t)' }, { condition = math }),
+  s({ trig = 'lo', wordTrig = false }, fmt([[(<>,<>)<>]], { i(1), i(2), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'ko', wordTrig = false }, fmt([[(<>,<>,<>)<>]], { i(1), i(2), i(3), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'O', wordTrig = false }, fmt([[(<>)<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s('()', fmt([[\left( <> \right)<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s('[]', fmt([[\left[ <> \right]<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s('lr{', fmt([[\left\{ <> \right\}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   -- Integral
   -- Sum
   -- Limit
   -- Set
-  -- Subscript, superscrit, subtext, supertext, hat, hat as written
+  -- Subscript, superscript, subtext, supertext, hat, hat as written
   -- Frac (2 versions)
   -- Auto subscript?
   -- Equals with alignment
   -- Left/right delimiters
   -- To the power of
+  s('lim', fmt([[\lim_{<> \to <>}<>]], { i(1), i(2), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s('sum', fmt([[\sum_{<>}^{<>}<>]], { i(1), i(2), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = '//', wordTrig = false }, fmt([[\frac{<>}{<>}<>]], { i(1), i(2), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'int', wordTrig = false }, fmt([[\int_{<>}^{<>}<>]], { i(1), i(2), i(0) }, { delimiters = '<>' }), { condition = math }),
   s( -- Square
     { trig = 'sr', wordTrig = false },
     { t '^2' },
@@ -128,14 +146,20 @@ return {
   ),
 
   -- Math formatting
-  -- Mathbf
+  s('mb', fmt([[\mathbf{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s('bm', fmt([[\bm{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s('hat', fmt([[\hat{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s('hmb', fmt([[\hat{\mathbf{<>}}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s('hbm', fmt([[\hat{\bm{<>}}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s('cc', fmt([[\mathcal{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s('bb', fmt([[\mathbb{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   -- HBF
   -- Mathcal
 
   -- Text formatting
   -- Emph, txt, txb,
   -- SI Package
-  -- Ang
+  s('ang', fmt([[\ang{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
 
   -- TikZ related stuff
   -- Nodes
