@@ -1,5 +1,17 @@
+local ls = require 'luasnip'
+local s = ls.snippet
+local sn = ls.snippet_node
+local t = ls.text_node
+local i = ls.insert_node
+local c = ls.choice_node
+local f = ls.function_node
+local extras = require 'luasnip.extras'
+local rep = extras.rep
 local fmt = require('luasnip.extras.fmt').fmt
-local line_begin = require('luasnip.extras.conditions.expand').line_begin
+local fmta = require('luasnip.extras.fmt').fmta
+
+local conds = require 'luasnip.extras.conditions'
+local line_begin = conds.line_begin
 -- require 'luasnip.extras.conditions.expand.line_begin'
 local function fn_math()
   -- Assuming vimtex is installed and available
@@ -12,14 +24,13 @@ local function fn_env(name)
   x, y = vim.eval("vimtex#env#is_inside('" + name + "')")
   return x ~= '0' and y ~= '0'
 end
-local cond = require 'luasnip.extras.conditions'
-local math = cond.make_condition(fn_math)
-local tikz = cond.make_condition(fn_tikz)
+local tikz = conds.make_condition(fn_tikz)
+local math = conds.make_condition(fn_math)
 
--- For auto labels
+-- For auto labels of chapter, section, subsection and subsubsection.
 local function sanitize_label(args)
   local input = args[1][1] or ''
-  local replacements = {
+  local replacements = { -- Replace Swedish letters.
     ['å'] = 'a',
     ['ä'] = 'a',
     ['ö'] = 'o',
@@ -193,7 +204,7 @@ return {
   s('[]', fmt([[\left[ <> \right]<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('lr{', fmt([[\left\{ <> \right\}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('lr|', fmt([[\left| <> \right|<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
-  s('lr<', fmt([[\left< {} \right>{}]], { i(1), i(0) }, { delimiters = '{}' }), { condition = math }),
+  s('lr<', fmt([[\left< {} \right\>{}]], { i(1), i(0) }, { delimiters = '{}' }), { condition = math }),
   -- Integral
   -- Sum
   -- Limit
