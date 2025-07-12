@@ -1,4 +1,4 @@
-require 'luasnip.extras.fmt'
+local fmt = require('luasnip.extras.fmt').fmt
 local line_begin = require('luasnip.extras.conditions.expand').line_begin
 -- require 'luasnip.extras.conditions.expand.line_begin'
 local function fn_math()
@@ -12,16 +12,92 @@ local function fn_env(name)
   x, y = vim.eval("vimtex#env#is_inside('" + name + "')")
   return x ~= '0' and y ~= '0'
 end
-local math = require('luasnip.extras.conditions').make_condition(fn_math)
-local tikz = require('luasnip.extras.conditions').make_condition(fn_tikz)
+local cond = require 'luasnip.extras.conditions'
+local math = cond.make_condition(fn_math)
+local tikz = cond.make_condition(fn_tikz)
 
--- local function in_math_mode_treesitter()
--- Need to remove latex from the disabled highlights in the treesitter config to use this function.
--- local node = ls.get_node()
--- if node and node:type() == 'math_environment' then
---   return true
--- end
--- end
+-- For auto labels
+local function sanitize_label(args)
+  local input = args[1][1] or ''
+  local replacements = {
+    ['å'] = 'a',
+    ['ä'] = 'a',
+    ['ö'] = 'o',
+    ['Å'] = 'a',
+    ['Ä'] = 'a',
+    ['Ö'] = 'o',
+  }
+  input = input:lower()
+  input = input:gsub('[%z\1-\127\194-\244][\128-\191]*', function(c)
+    return replacements[c] or c
+  end)
+  input = input:gsub('[^%w%s]', '') -- remove punctuation
+  input = input:gsub('%s+', '_') -- spaces to underscores
+  return input
+end
+
+-- List of LaTeX math commands to auto-prefix with "\"
+local latex_math_cmds = {
+  'alpha',
+  'beta',
+  'gamma',
+  'delta',
+  'epsilon',
+  'zeta',
+  'eta',
+  'theta',
+  'iota',
+  'kappa',
+  'lambda',
+  'mu',
+  'nu',
+  'xi',
+  'omicron',
+  'pi',
+  'rho',
+  'sigma',
+  'tau',
+  'upsilon',
+  'phi',
+  'chi',
+  'psi',
+  'omega',
+  'hbar',
+  'infty',
+  'nabla',
+  'partial',
+  'ell',
+  'dagger',
+  'cdot',
+  'pi',
+  'varepsilon',
+  'Omega',
+  'Delta',
+  'hbar',
+  'sin',
+  'cos',
+  'tan',
+  'arcsin',
+  'arccos',
+  'arctan',
+  'log',
+}
+
+-- Helper function to create the conditional snippet
+local function latex_cmd_snippet(cmd)
+  return s({ trig = cmd, wordTrig = true, regTrig = false }, t('\\' .. cmd), {
+    condition = math * function(line_to_cursor)
+      local pos = #line_to_cursor - #cmd
+      return line_to_cursor:sub(pos, pos) ~= '\\'
+    end,
+  })
+end
+
+-- Register the snippets
+local latex_cmd_auto_snippets = {}
+for _, cmd in ipairs(latex_math_cmds) do
+  table.insert(latex_cmd_auto_snippets, latex_cmd_snippet(cmd))
+end
 
 return {
   s( -- 'template'
@@ -57,22 +133,6 @@ return {
     { condition = line_begin * -math }
   ),
 }, {
-  -- Math variables
-  s('alpha', { t '\\alpha' }, { condition = math }),
-  s('beta', { t '\\beta' }, { condition = math }),
-  s('chi', { t '\\chi' }, { condition = math }),
-  s('delta', { t '\\delta' }, { condition = math }),
-  s('epsilon', { t '\\epsion' }, { condition = math }),
-  s('gamma', { t '\\gamma' }, { condition = math }),
-  s('lambda', { t '\\lambda' }, { condition = math }),
-  s('omega', { t '\\omega' }, { condition = math }),
-  s('psi', { t '\\psi' }, { condition = math }),
-  s('rho', { t '\\rho' }, { condition = math }),
-  s('sigma', { t '\\sigma' }, { condition = math }),
-  s('theta', { t '\\theta' }, { condition = math }),
-  s('xi', { t '\\xi' }, { condition = math }),
-  s('zeta', { t '\\zeta' }, { condition = math }),
-
   s('pi', { t '\\pi' }, { condition = math }),
   s('hbar', { t '\\hbar' }, { condition = math }),
 
@@ -89,32 +149,83 @@ return {
   s('imp', { t '\\implies' }, { condition = math }),
   s('to', { t '\\to' }, { condition = math }),
 
-  -- Math functions
-  s('sin', { t '\\sin' }, { condition = math }),
-  s('cos', { t '\\cos' }, { condition = math }),
-  s('tan', { t '\\tan' }, { condition = math }),
-  s('arcsin', { t '\\arcsin' }, { condition = math }),
-  s('arccos', { t '\\arccos' }, { condition = math }),
-  s('arctan', { t '\\arctan' }, { condition = math }),
-  s('log', { t '\\log' }, { condition = math }), -- Needs look behind!
-
   -- Function parameters
-  s({ trig = 'ox', wordTrig = false }, { t '(x)' }, { condition = math }),
-  s({ trig = 'oy', wordTrig = false }, { t '(y)' }, { condition = math }),
-  s({ trig = 'oz', wordTrig = false }, { t '(z)' }, { condition = math }),
-  s({ trig = 'ot', wordTrig = false }, { t '(t)' }, { condition = math }),
-  s({ trig = 'lo', wordTrig = false }, fmt([[(<>,<>)<>]], { i(1), i(2), i(0) }, { delimiters = '<>' }), { condition = math }),
-  s({ trig = 'ko', wordTrig = false }, fmt([[(<>,<>,<>)<>]], { i(1), i(2), i(3), i(0) }, { delimiters = '<>' }), { condition = math }),
-  s({ trig = 'O', wordTrig = false }, fmt([[(<>)<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
-  s('()', fmt([[\left( <> \right)<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s(
+    {
+      -- Match function name + space + arguments + O
+      trig = '([%a_%^][%w_]*)%s+([%w_,]+)O',
+      regTrig = true,
+      wordTrig = false,
+    },
+    fmt('{}({}){}', {
+      f(function(_, snip)
+        return snip.captures[1] -- function name (e.g. f)
+      end, {}),
+      f(function(_, snip)
+        local raw = snip.captures[2] -- args like "x,y,z"
+        local parts = {}
+        for token in string.gmatch(raw, '[^,]+') do
+          table.insert(parts, vim.trim(token))
+        end
+        return table.concat(parts, ', ')
+      end, {}),
+      i(1),
+    }),
+    { condition = math }
+  ),
+  -- s(
+  --   { trig = '([%w_,]+)O', regTrig = true, wordTrig = false },
+  --   fmt('({}){}', {
+  --     f(function(_, snip)
+  --       local raw = snip.captures[1]
+  --       local parts = {}
+  --
+  --       for token in string.gmatch(raw, '[^,]+') do
+  --         table.insert(parts, vim.trim(token))
+  --       end
+  --
+  --       return table.concat(parts, ', ')
+  --     end, {}),
+  --     i(0),
+  --   })
+  -- ),
+  s({ trig = '()', wordTrig = false }, fmt([[\left( <> \right)<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('[]', fmt([[\left[ <> \right]<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('lr{', fmt([[\left\{ <> \right\}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s('lr|', fmt([[\left| <> \right|<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s('lr<', fmt([[\left< {} \right>{}]], { i(1), i(0) }, { delimiters = '{}' }), { condition = math }),
   -- Integral
   -- Sum
   -- Limit
   -- Set
   -- Subscript, superscript, subtext, supertext, hat, hat as written
   -- Frac (2 versions)
+  s(
+    {
+      trig = '([%w_\\%^%{%}]+)/',
+      regTrig = true,
+      wordTrig = false,
+    },
+    fmt([[\frac{<>}{<>}<>]], {
+      f(function(_, snip)
+        return snip.captures[1]
+      end, {}),
+      i(1),
+      i(0),
+    }, { delimiters = '<>' }),
+    { condition = math }
+  ),
+  -- s(
+  --   { trig = '%s([^%s]+)/', regTrig = true },
+  --   fmt([[\frac{<>}{<>}<>]], {
+  --     f(function(_, snip)
+  --       return snip.captures[1]
+  --     end, {}),
+  --     i(1),
+  --     i(0),
+  --   }, { delimiters = '<>' }),
+  --   { condition = math }
+  -- ),
   -- Auto subscript?
   -- Equals with alignment
   -- Left/right delimiters
@@ -200,5 +311,68 @@ return {
   ),
   s('mk', fmt([[$<>$<>]], { i(1), i(0) }, { delimiters = '<>' })),
   -- Figure
-  -- Chapter, section,
+  s(
+    { trig = 'b(%d)(%d)', regTrig = true },
+    f(function(_, snip)
+      return 'Captured Text: ' .. snip.captures[1] .. snip.captures[2] .. '.'
+    end, {})
+  ), -- Chapter, section,
+  s(
+    { trig = 'ch' },
+    fmt(
+      [[
+      \chapter{<>}
+      \label{sec:<>}
+
+      <>
+      ]],
+      { i(1, 'title'), f(sanitize_label, { 1 }), i(0) },
+      { delimiters = '<>' }
+    ),
+    { condition = line_begin }
+  ),
+  s(
+    { trig = 'sc' },
+    fmt(
+      [[
+      \section{<>}
+      \label{sec:<>}
+
+      <>
+      ]],
+      { i(1, 'title'), f(sanitize_label, { 1 }), i(0) },
+      { delimiters = '<>' }
+    ),
+    { condition = line_begin }
+  ),
+  s(
+    { trig = 'sub' },
+    fmt(
+      [[
+      \subsection{<>}
+      \label{sec:<>}
+
+      <>
+      ]],
+      { i(1, 'title'), f(sanitize_label, { 1 }), i(0) },
+      { delimiters = '<>' }
+    ),
+    { condition = line_begin }
+  ),
+  s(
+    { trig = 'ssub' },
+    fmt(
+      [[
+      \subsubsection{<>}
+      \label{sec:<>}
+
+      <>
+      ]],
+      { i(1, 'title'), f(sanitize_label, { 1 }), i(0) },
+      { delimiters = '<>' }
+    ),
+    { condition = line_begin }
+  ),
+  -- Unpack snippets generated above.
+  unpack(latex_cmd_auto_snippets),
 }
