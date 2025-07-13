@@ -10,8 +10,7 @@ local rep = extras.rep
 local fmt = require('luasnip.extras.fmt').fmt
 local fmta = require('luasnip.extras.fmt').fmta
 
-local conds = require 'luasnip.extras.conditions'
-local line_begin = conds.line_begin
+local line_begin = require('luasnip.extras.expand_conditions').line_begin
 -- require 'luasnip.extras.conditions.expand.line_begin'
 local function fn_math()
   -- Assuming vimtex is installed and available
@@ -24,6 +23,7 @@ local function fn_env(name)
   x, y = vim.eval("vimtex#env#is_inside('" + name + "')")
   return x ~= '0' and y ~= '0'
 end
+local conds = require 'luasnip.extras.conditions'
 local tikz = conds.make_condition(fn_tikz)
 local math = conds.make_condition(fn_math)
 

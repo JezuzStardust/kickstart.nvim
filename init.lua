@@ -281,7 +281,7 @@ require('lazy').setup({
   { -- Detect tabstop and shiftwidth automatically
     'NMAC427/guess-indent.nvim',
     config = function()
-      require('guess-indent').setup {}
+      require('guess-indent').setup { auto_cmd = false }
     end,
   },
 
@@ -563,13 +563,13 @@ require('lazy').setup({
       for word in io.open(vim.fn.stdpath 'config' .. '/spell/sv.utf-8.add', 'r'):lines() do
         table.insert(words_sv, word)
       end
-      vim.lsp.config('ltex', {
+      vim.lsp.config('ltex_plus', {
         settings = {
           ltex = {
             dictionary = {
               ['en-US'] = words_en,
               ['en-GB'] = words_en,
-              ['sv'] = words_sv,
+              ['sv'] = words_en,
             },
           },
         },
@@ -629,6 +629,7 @@ require('lazy').setup({
           ---@param method vim.lsp.protocol.Method
           ---@param bufnr? integer some lsp support methods only in specific files
           ---@return boolean
+          ---
           local function client_supports_method(client, method, bufnr)
             if vim.fn.has 'nvim-0.11' == 1 then
               return client:supports_method(method, bufnr)
@@ -736,6 +737,9 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
         --
+        ltex_plus = {
+          encoding = 'utf-8',
+        },
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
@@ -821,7 +825,6 @@ require('lazy').setup({
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
-        --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
       },
@@ -839,8 +842,18 @@ require('lazy').setup({
       vim.g.vimtex_view_method = 'sioyek'
       vim.wo.foldexpr = 'vimtex#fold#level(v:lnum)'
       vim.wo.foldtext = 'vimtex#fold#text()'
-      vim.bo.shiftwidth = 2
-      vim.bo.tabstop = 2
+      vim.o.shiftwidth = 2
+      vim.o.tabstop = 2
+      vim.o.expandtab = true
+      vim.g.vimtex_compiler_latexmk = {
+        options = {
+          '-verbose',
+          '-file-line-error',
+          '-synctex=1',
+          '-interaction=nonstopmode',
+          '-shell-escape',
+        },
+      }
     end,
   },
   { -- Autocompletion
