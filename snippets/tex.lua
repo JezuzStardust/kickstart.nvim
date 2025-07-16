@@ -92,11 +92,15 @@ local latex_math_cmds = {
   'arccos',
   'arctan',
   'log',
+  'maketitle',
+  'tableofcontents',
+  'to',
+  'dots',
 }
 
 -- Helper function to create the conditional snippet
 local function latex_cmd_snippet(cmd)
-  return s({ trig = cmd, wordTrig = true, regTrig = false }, t('\\' .. cmd), {
+  return s({ trig = cmd, wordTrig = true, regTrig = false, snippetType = 'autosnippet' }, t('\\' .. cmd), {
     condition = math * function(line_to_cursor)
       local pos = #line_to_cursor - #cmd
       return line_to_cursor:sub(pos, pos) ~= '\\'
@@ -110,7 +114,7 @@ for _, cmd in ipairs(latex_math_cmds) do
   table.insert(latex_cmd_auto_snippets, latex_cmd_snippet(cmd))
 end
 
-return {
+return { -- Manual snippets
   s( -- 'template'
     { trig = 'template', name = 'LaTeX Template', desc = 'Create LaTeX template' },
     fmt(
@@ -143,28 +147,23 @@ return {
     ),
     { condition = line_begin * -math }
   ),
-}, {
-  s('pi', { t '\\pi' }, { condition = math }),
-  s('hbar', { t '\\hbar' }, { condition = math }),
-
+}, { -- Autosnippets
   -- Math symbols
-  s('inf', { t '\\infty' }, { condition = math }),
-  s('gg', { t '\\gg' }, { condition = math }),
-  s('<=', { t '\\leq' }, { condition = math }),
-  s('>=', { t '\\geq' }, { condition = math }),
-  s('ll', { t '\\ll' }, { condition = math }),
+  s({ trig = 'inf', name = 'Infinity symbol' }, { t '\\infty' }, { condition = math }),
+  s({ trig = 'gg', name = 'Much greater than' }, { t '\\gg' }, { condition = math }),
+  s({ trig = '<=', name = 'Less or equal to' }, { t '\\leq' }, { condition = math }),
+  s({ trig = '>=', name = 'Greater or equal to' }, { t '\\geq' }, { condition = math }),
+  s({ trig = 'll', name = 'Much less than' }, { t '\\ll' }, { condition = math }),
   s('DD', { t '\\Delta' }, { condition = math }),
   s('xx', { t '\\cross' }, { condition = math }),
-  s('cdot', { t '\\cdot' }, { condition = math }),
-  s('nabla', { t '\\nabla' }, { condition = math }),
   s('imp', { t '\\implies' }, { condition = math }),
-  s('to', { t '\\to' }, { condition = math }),
+  s('pp', { t '\\partial' }, { condition = math }),
+  s('...', { t '\\dots' }, { condition = math }),
 
   -- Function parameters
-  s(
+  s( -- x,y,zO, tO, etc. - function parameters
     {
-      -- Match function name + space + arguments + O
-      trig = '([%a_%^][%w_]*)%s+([%w_,]+)O',
+      trig = '([%a_%^][%w_%{%}]*)%s+([%w_,\\%{%}]+)O',
       regTrig = true,
       wordTrig = false,
     },
@@ -184,36 +183,39 @@ return {
     }),
     { condition = math }
   ),
-  -- s(
-  --   { trig = '([%w_,]+)O', regTrig = true, wordTrig = false },
-  --   fmt('({}){}', {
-  --     f(function(_, snip)
-  --       local raw = snip.captures[1]
-  --       local parts = {}
-  --
-  --       for token in string.gmatch(raw, '[^,]+') do
-  --         table.insert(parts, vim.trim(token))
-  --       end
-  --
-  --       return table.concat(parts, ', ')
-  --     end, {}),
-  --     i(0),
-  --   })
-  -- ),
   s({ trig = '()', wordTrig = false }, fmt([[\left( <> \right)<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
-  s('[]', fmt([[\left[ <> \right]<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
-  s('lr{', fmt([[\left\{ <> \right\}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
-  s('lr|', fmt([[\left| <> \right|<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
-  s('lr<', fmt([[\left< {} \right\>{}]], { i(1), i(0) }, { delimiters = '{}' }), { condition = math }),
+  s('lr[', fmt('\\left[ <> \\right]', { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s('lr{', fmt([[\left\{ <> \right\}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s('lr|', fmt([[\left| <> \right|]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s('lr<', fmt([[\left< {} \right\>]], { i(1) }, { delimiters = '{}' }), { condition = math }),
+  s('dot', fmt([[\dot{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
   -- Integral
   -- Sum
   -- Limit
+  s( -- Auto-indexing
+    {
+      trig = '([%w]+)(%d)',
+      regTrig = true,
+      wordTrig = true,
+    },
+    fmt('<>_{<>}<>', {
+      f(function(_, snip)
+        return snip.captures[1] -- variable
+      end, {}),
+      f(function(_, snip)
+        return snip.captures[2] -- numeric index
+      end, {}),
+      i(0),
+    }, { delimiters = '<>' }),
+    { condition = math }
+  ),
   -- Set
   -- Subscript, superscript, subtext, supertext, hat, hat as written
+  s({ trig = '__', wordTrig = false }, fmt([[_{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
   -- Frac (2 versions)
-  s(
+  s( -- Fractions
     {
-      trig = '([%w_\\%^%{%}]+)/',
+      trig = '([%w_\\%^%{%}%(%)]+)/',
       regTrig = true,
       wordTrig = false,
     },
@@ -226,17 +228,6 @@ return {
     }, { delimiters = '<>' }),
     { condition = math }
   ),
-  -- s(
-  --   { trig = '%s([^%s]+)/', regTrig = true },
-  --   fmt([[\frac{<>}{<>}<>]], {
-  --     f(function(_, snip)
-  --       return snip.captures[1]
-  --     end, {}),
-  --     i(1),
-  --     i(0),
-  --   }, { delimiters = '<>' }),
-  --   { condition = math }
-  -- ),
   -- Auto subscript?
   -- Equals with alignment
   -- Left/right delimiters
@@ -250,12 +241,12 @@ return {
     { t '^2' },
     { condition = math }
   ),
-  s( -- Cubed
+  s( --cb - cubed
     { trig = 'cb', wordTrig = false },
     { t '^3' },
     { condition = math }
   ),
-  s( -- Square root
+  s( --sq - square root
     { trig = 'sq', name = 'Square root', wordTrig = false },
     fmt(
       [[
@@ -266,7 +257,9 @@ return {
     ),
     { condition = math }
   ),
-
+  s({ trig = 'so', wordTrig = false }, fmt([[^{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'ss', wordTrig = false }, fmt([[_{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'st', wordTrig = false }, t '^{*}', { condition = math }),
   -- Math formatting
   s('mb', fmt([[\mathbf{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('bm', fmt([[\bm{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
@@ -275,6 +268,7 @@ return {
   s('hbm', fmt([[\hat{\bm{<>}}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('cc', fmt([[\mathcal{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('bb', fmt([[\mathbb{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s('tx', fmt([[\text{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
   -- HBF
   -- Mathcal
 
@@ -292,7 +286,7 @@ return {
   -- Aligned
   -- Itemize
   -- Enumerate
-  s( -- 'beg'
+  s( -- 'beg - begin{} \end{}'
     'beg',
     fmt(
       [[
@@ -311,7 +305,7 @@ return {
     fmt(
       [[
       \begin{equation}
-              <>
+        <>
       \end{equation}
       <>
       ]],
@@ -322,13 +316,8 @@ return {
   ),
   s('mk', fmt([[$<>$<>]], { i(1), i(0) }, { delimiters = '<>' })),
   -- Figure
-  s(
-    { trig = 'b(%d)(%d)', regTrig = true },
-    f(function(_, snip)
-      return 'Captured Text: ' .. snip.captures[1] .. snip.captures[2] .. '.'
-    end, {})
-  ), -- Chapter, section,
-  s(
+  -- Chapter, section,
+  s( -- ch - chapter
     { trig = 'ch' },
     fmt(
       [[
@@ -342,7 +331,7 @@ return {
     ),
     { condition = line_begin }
   ),
-  s(
+  s( --sc - section
     { trig = 'sc' },
     fmt(
       [[
@@ -356,7 +345,7 @@ return {
     ),
     { condition = line_begin }
   ),
-  s(
+  s( --sub - subsection
     { trig = 'sub' },
     fmt(
       [[
@@ -370,7 +359,7 @@ return {
     ),
     { condition = line_begin }
   ),
-  s(
+  s( --ssub - subsubsection
     { trig = 'ssub' },
     fmt(
       [[
