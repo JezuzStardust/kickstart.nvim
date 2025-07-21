@@ -236,6 +236,25 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 -- vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
 -- vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
 
+-- [[ Snippet helper function ]]
+local untrigger = function()
+  -- get the snippet
+  local snip = require('luasnip').session.current_nodes[vim.api.nvim_get_current_buf()].parent.snippet
+  -- get its trigger
+  local trig = snip.trigger
+  -- replace that region with the trigger
+  local node_from, node_to = snip.mark:pos_begin_end_raw()
+  vim.api.nvim_buf_set_text(0, node_from[1], node_from[2], node_to[1], node_to[2], { trig })
+  -- Reset the cursor position to ahead the trigger
+  vim.fn.setpos('.', { 0, node_from[1] + 1, node_from[2] + 1 + string.len(trig) })
+end
+
+vim.keymap.set({ 'i', 's' }, '<c-x>', function()
+  if require('luasnip').in_snippet() then
+    untrigger()
+    require('luasnip').unlink_current()
+  end
+end, { desc = 'Undo a snippet' })
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -906,6 +925,25 @@ require('lazy').setup({
               ls.change_choice(1)
             end
           end, { silent = true, desc = 'Lua Snip change choice.' })
+          -- Undo triggering of snippets.
+          local untrigger = function()
+            -- Get the snippet that was triggered.
+            local snip = require('luasnip').session.current_nodes[vim.api.nvim_get_current_buf()].parent.snippet
+            -- Get its trigger
+            local trig = snip.trigger
+            -- Replace that region with the trigger
+            local node_from, node_to = snip.mark:pos_begin_end_raw()
+            vim.api.nvim_buf_set_text(0, node_from[1], node_from[2], node_to[1], node_to[2], { trig })
+            -- Reset the cursor position to ahead the trigger
+            vim.fn.setpos('.', { 0, node_from[1] + 1, node_from[2] + 1 + string.len(trig) })
+          end
+
+          vim.keymap.set({ 'i', 's' }, '<c-x>', function()
+            if require('luasnip').in_snippet() then
+              untrigger()
+              require('luasnip').unlink_current()
+            end
+          end, { desc = 'Undo a snippet' })
         end,
       },
       'folke/lazydev.nvim',
@@ -914,10 +952,10 @@ require('lazy').setup({
     --- @type blink.cmp.Config
     opts = {
       keymap = {
-        ['<C-E>'] = false,
-        ['<C-K>'] = { 'select_and_accept', 'fallback' },
-        ['<C-L>'] = { 'snippet_forward', 'fallback' },
-        ['<C-J>'] = { 'snippet_backward', 'fallback' },
+        ['<C-e>'] = false,
+        ['<C-k>'] = { 'select_and_accept', 'fallback' },
+        ['<C-l>'] = { 'snippet_forward', 'fallback' },
+        ['<C-j>'] = { 'snippet_backward', 'fallback' },
 
         -- 'default' (recommended) for mappings similar to built-in completions
         --   <c-y> to accept ([y]es) the completion.
