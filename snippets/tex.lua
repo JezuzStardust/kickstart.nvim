@@ -16,7 +16,11 @@ local function fn_math()
   -- Assuming vimtex is installed and available
   return vim.fn['vimtex#syntax#in_mathzone']() == 1
 end
-local function fn_tikz()
+function fn_si_unit()
+  return vim.fn['vimtex#syntax#in'] 'texSIArgUnit' == 1
+end
+-- Fix this or just use the construct above.
+local function fn_is_in(name)
   return vim.eval('vimtex#syntax#in("' + name + '")') == '1'
 end
 local function fn_env(name)
@@ -26,6 +30,7 @@ end
 local conds = require 'luasnip.extras.conditions'
 local tikz = conds.make_condition(fn_tikz)
 local math = conds.make_condition(fn_math)
+local siunit = conds.make_condition(fn_si_unit)
 
 -- For auto labels of chapter, section, subsection and subsubsection.
 local function sanitize_label(args)
@@ -96,6 +101,7 @@ local latex_math_cmds = {
   'tableofcontents',
   'to',
   'dots',
+  'times',
 }
 
 -- Helper function to create the conditional snippet
@@ -155,7 +161,7 @@ return { -- Manual snippets
   s({ trig = '>=', name = 'Greater or equal to' }, { t '\\geq' }, { condition = math }),
   s({ trig = 'll', name = 'Much less than' }, { t '\\ll' }, { condition = math }),
   s('DD', { t '\\Delta' }, { condition = math }),
-  s('xx', { t '\\cross' }, { condition = math }),
+  s('xx', { t '\\times' }, { condition = math }),
   s('imp', { t '\\implies' }, { condition = math }),
   s('pp', { t '\\partial' }, { condition = math }),
   s('...', { t '\\dots' }, { condition = math }),
@@ -183,16 +189,16 @@ return { -- Manual snippets
     }),
     { condition = math }
   ),
+  -- Parenthesis
   s({ trig = '()', wordTrig = false }, fmt([[\left( <> \right)<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('lr[', fmt('\\left[ <> \\right]', { i(1) }, { delimiters = '<>' }), { condition = math }),
   s('lr{', fmt([[\left\{ <> \right\}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
   s('lr|', fmt([[\left| <> \right|]], { i(1) }, { delimiters = '<>' }), { condition = math }),
   s('lr<', fmt([[\left< {} \right\>]], { i(1) }, { delimiters = '{}' }), { condition = math }),
   s('dot', fmt([[\dot{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
-  -- Integral
-  -- Sum
-  -- Limit
-  s( -- Auto-indexing
+  --  TODO: Sets
+  -- Auto-indexing
+  s(
     {
       trig = '([%w]+)(%d)',
       regTrig = true,
@@ -209,11 +215,13 @@ return { -- Manual snippets
     }, { delimiters = '<>' }),
     { condition = math }
   ),
-  -- Set
-  -- Subscript, superscript, subtext, supertext, hat, hat as written
+  -- Subscript
+  s({ trig = 'so', wordTrig = false }, fmt([[^{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'st', wordTrig = false }, t '^{*}', { condition = math }),
+  s({ trig = 'ss', wordTrig = false }, fmt([[_{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
   s({ trig = '__', wordTrig = false }, fmt([[_{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
   -- Frac (2 versions)
-  s( -- Fractions
+  s(
     {
       trig = '([%w_\\%^%{%}%(%)]+)/',
       regTrig = true,
@@ -228,25 +236,19 @@ return { -- Manual snippets
     }, { delimiters = '<>' }),
     { condition = math }
   ),
-  -- Auto subscript?
+  s({ trig = '//', wordTrig = false }, fmt([[\frac{<>}{<>}<>]], { i(1), i(2), i(0) }, { delimiters = '<>' }), { condition = math }),
   -- Equals with alignment
   -- Left/right delimiters
   -- To the power of
   s('lim', fmt([[\lim_{<> \to <>}<>]], { i(1), i(2), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('sum', fmt([[\sum_{<>}^{<>}<>]], { i(1), i(2), i(0) }, { delimiters = '<>' }), { condition = math }),
-  s({ trig = '//', wordTrig = false }, fmt([[\frac{<>}{<>}<>]], { i(1), i(2), i(0) }, { delimiters = '<>' }), { condition = math }),
   s({ trig = 'int', wordTrig = false }, fmt([[\int_{<>}^{<>}<>]], { i(1), i(2), i(0) }, { delimiters = '<>' }), { condition = math }),
-  s( -- Square
-    { trig = 'sr', wordTrig = false },
-    { t '^2' },
-    { condition = math }
-  ),
-  s( --cb - cubed
-    { trig = 'cb', wordTrig = false },
-    { t '^3' },
-    { condition = math }
-  ),
-  s( --sq - square root
+  -- Square
+  s({ trig = 'sr', wordTrig = false }, { t '^2' }, { condition = math }),
+  -- Cubed
+  s({ trig = 'cb', wordTrig = false }, { t '^3' }, { condition = math }),
+  -- Square root
+  s(
     { trig = 'sq', name = 'Square root', wordTrig = false },
     fmt(
       [[
@@ -257,24 +259,37 @@ return { -- Manual snippets
     ),
     { condition = math }
   ),
-  s({ trig = 'so', wordTrig = false }, fmt([[^{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
-  s({ trig = 'ss', wordTrig = false }, fmt([[_{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
-  s({ trig = 'st', wordTrig = false }, t '^{*}', { condition = math }),
   -- Math formatting
   s('mb', fmt([[\mathbf{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('bm', fmt([[\bm{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('hat', fmt([[\hat{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('hmb', fmt([[\hat{\mathbf{<>}}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('hbm', fmt([[\hat{\bm{<>}}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s('vec', fmt([[\vec{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s('uvec', fmt([[\uvec{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  -- bec (custom vector with hat)
+  s('bec', fmt([[\bec{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  -- ubec (custom bm vector with hat)
+  s('ubec', fmt([[\ubec{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
   s('cc', fmt([[\mathcal{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('bb', fmt([[\mathbb{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('tx', fmt([[\text{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
-  -- HBF
-  -- Mathcal
-
-  -- Text formatting
-  -- Emph, txt, txb,
-  -- SI Package
+  -- TODO: Mathcal
+  -- TODO: Text formatting
+  -- TODO: Emph, txt, txb,
+  -- TODO: SI Package
+  s('kg', { t '\\kilogram' }, { condition = siunit }),
+  s('met', { t '\\meter' }, { condition = siunit }),
+  s('sec', { t '\\second' }, { condition = siunit }),
+  s('rad', { t '\\rad' }, { condition = siunit }),
+  -- TODO: Fix some of this with priority.
+  s('p2', { t '\\squared' }, { condition = siunit }),
+  s('p3', { t '\\cubed' }, { condition = siunit }),
+  s('jj', { t '\\joule' }, { condition = siunit }),
+  s('kk', { t '\\kilo' }, { condition = siunit }),
+  s('gg', { t '\\giga' }, { condition = siunit }),
+  s('mm', { t '\\micro' }, { condition = siunit }),
+  s('nn', { t '\\nano' }, { condition = siunit }),
   s('ang', fmt([[\ang{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
 
   -- TikZ related stuff
