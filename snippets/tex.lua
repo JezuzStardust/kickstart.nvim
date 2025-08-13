@@ -200,7 +200,7 @@ return { -- Manual snippets
   -- Auto-indexing
   s(
     {
-      trig = '([%w]+)(%d)',
+      trig = '([%a]+)(%d)',
       regTrig = true,
       wordTrig = true,
     },
