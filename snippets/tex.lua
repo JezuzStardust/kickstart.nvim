@@ -278,19 +278,23 @@ return { -- Manual snippets
   -- TODO: Text formatting
   -- TODO: Emph, txt, txb,
   -- TODO: SI Package
-  s('kg', { t '\\kilogram' }, { condition = siunit }),
-  s('met', { t '\\meter' }, { condition = siunit }),
-  s('sec', { t '\\second' }, { condition = siunit }),
-  s('rad', { t '\\rad' }, { condition = siunit }),
-  -- TODO: Fix some of this with priority.
-  s('p2', { t '\\squared' }, { condition = siunit }),
-  s('p3', { t '\\cubed' }, { condition = siunit }),
-  s('jj', { t '\\joule' }, { condition = siunit }),
-  s('kk', { t '\\kilo' }, { condition = siunit }),
-  s('gg', { t '\\giga' }, { condition = siunit }),
-  s('mm', { t '\\micro' }, { condition = siunit }),
-  s('nn', { t '\\nano' }, { condition = siunit }),
+  s('SI', fmt([[\SI{<>}{<>}]], { i(1), i(2) }, { delimiters = '<>' })),
   s('ang', fmt([[\ang{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s('unit', fmt([[\unit{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s('num', fmt([[\num{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'per', wordTrig = false }, { t '\\per' }, { condition = siunit }),
+  s({ trig = 'kg', wordTrig = false }, { t '\\kilogram' }, { condition = siunit }),
+  s({ trig = 'met', wordTrig = false }, { t '\\meter' }, { condition = siunit }),
+  s({ trig = 'sec', wordTrig = false }, { t '\\second' }, { condition = siunit }),
+  s({ trig = 'rad', wordTrig = false }, { t '\\rad' }, { condition = siunit }),
+  -- TODO: Fix some of this with priority or with condition bolean.
+  s({ trig = 'p2', wordTrig = false }, { t '\\squared' }, { condition = siunit }),
+  s({ trig = 'p3', wordTrig = false }, { t '\\cubed' }, { condition = siunit }),
+  s({ trig = 'jol', wordTrig = false }, { t '\\joule' }, { condition = siunit }),
+  s({ trig = 'kil', wordTrig = false }, { t '\\kilo' }, { condition = siunit }),
+  s({ trig = 'gg', wordTrig = false }, { t '\\giga' }, { condition = siunit }),
+  s({ trig = 'mic', wordTrig = false }, { t '\\micro' }, { condition = siunit }),
+  s({ trig = 'nan', wordTrig = false }, { t '\\nano' }, { condition = siunit }),
 
   -- TikZ related stuff
   -- Nodes
