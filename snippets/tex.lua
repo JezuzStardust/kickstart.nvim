@@ -341,7 +341,7 @@ return { -- Manual snippets
     fmt(
       [[
       \chapter{<>}
-      \label{sec:<>}
+      \label{ch:<>}
 
       <>
       ]],
@@ -369,7 +369,7 @@ return { -- Manual snippets
     fmt(
       [[
       \subsection{<>}
-      \label{sec:<>}
+      \label{sub:<>}
 
       <>
       ]],
@@ -383,7 +383,7 @@ return { -- Manual snippets
     fmt(
       [[
       \subsubsection{<>}
-      \label{sec:<>}
+      \label{ssub:<>}
 
       <>
       ]],
