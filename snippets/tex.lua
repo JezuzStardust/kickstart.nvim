@@ -271,7 +271,7 @@ return { -- Manual snippets
   s('bec', fmt([[\bec{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
   -- ubec (custom bm vector with hat)
   s('ubec', fmt([[\ubec{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
-  s('cc', fmt([[\mathcal{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s('cal', fmt([[\mathcal{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('bb', fmt([[\mathbb{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('tx', fmt([[\text{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
   -- TODO: Mathcal
@@ -312,9 +312,8 @@ return { -- Manual snippets
       \begin{<>}
         <>
       \end{<>}
-      <>
       ]],
-      { i(1, 'equation'), i(2), rep(1), i(0) },
+      { i(1, 'equation'), i(2), rep(1) },
       { delimiters = '<>' }
     ),
     { condition = line_begin }
