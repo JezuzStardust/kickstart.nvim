@@ -816,7 +816,7 @@ require('lazy').setup({
     cmd = { 'ConformInfo' },
     keys = {
       {
-        '<leader>f',
+        '<leader>F',
         function()
           require('conform').format { async = true, lsp_format = 'fallback' }
         end,
@@ -859,6 +859,7 @@ require('lazy').setup({
     config = function()
       -- VimTeX configuration goes here, e.g.
       vim.g.vimtex_view_method = 'sioyek'
+      -- vim.g.vimtex_view_method = 'mupdf'
       vim.wo.foldexpr = 'vimtex#fold#level(v:lnum)'
       vim.wo.foldtext = 'vimtex#fold#text()'
       vim.o.shiftwidth = 2
