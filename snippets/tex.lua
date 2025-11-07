@@ -75,6 +75,7 @@ local latex_math_cmds = {
   'tau',
   'upsilon',
   'phi',
+  'varphi',
   'chi',
   'psi',
   'omega',
@@ -165,6 +166,7 @@ return { -- Manual snippets
   s('imp', { t '\\implies' }, { condition = math }),
   s('pp', { t '\\partial' }, { condition = math }),
   s('...', { t '\\dots' }, { condition = math }),
+  s('==', fmt([[ &= <> \\]], { i(1) }, { delimiters = '<>' }), { condition = math }),
 
   -- Function parameters
   s( -- x,y,zO, tO, etc. - function parameters
@@ -196,6 +198,8 @@ return { -- Manual snippets
   s('lr|', fmt([[\left| <> \right|]], { i(1) }, { delimiters = '<>' }), { condition = math }),
   s('lr<', fmt([[\left< {} \right\>]], { i(1) }, { delimiters = '{}' }), { condition = math }),
   s('dot', fmt([[\dot{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s('ddot', fmt([[\ddot{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s('udot', fmt([[\udot{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
   --  TODO: Sets
   -- Auto-indexing
   s(
@@ -216,10 +220,14 @@ return { -- Manual snippets
     { condition = math }
   ),
   -- Subscript
-  s({ trig = 'so', wordTrig = false }, fmt([[^{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
-  s({ trig = 'st', wordTrig = false }, t '^{*}', { condition = math }),
-  s({ trig = 'ss', wordTrig = false }, fmt([[_{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'tpo', wordTrig = false }, fmt([[^{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'tps', wordTrig = false }, t '^{*}', { condition = math }),
+  s({ trig = 'trans', wordTrig = false }, t '^{\text{T}}', { condition = math }),
   s({ trig = '__', wordTrig = false }, fmt([[_{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'iot', wordTrig = false }, fmt([[_{\text{<>}}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'tpt', wordTrig = false }, fmt([[^{\text{<>}}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = '__', wordTrig = false }, fmt([[_{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'iog', wordTrig = false }, fmt([[_{<>}]], { i(1) }, { delimiters = '<>' }), { condition = math }),
   -- Frac (2 versions)
   s(
     {
@@ -324,6 +332,24 @@ return { -- Manual snippets
       [[
       \begin{equation}
         <>
+      \end{equation}
+      <>
+      ]],
+      { i(1), i(0) },
+      { delimiters = '<>' }
+    ),
+    { condition = line_begin * -math }
+  ),
+  s( -- 'alpa'
+    'alpa',
+    fmt(
+      [[
+      \begin{equation}
+        \left\{
+        \begin{aligned}
+          <>
+        \end{aligned}
+        \right.
       \end{equation}
       <>
       ]],
