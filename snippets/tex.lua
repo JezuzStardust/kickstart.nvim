@@ -250,6 +250,11 @@ return { -- Manual snippets
   -- To the power of
   s('lim', fmt([[\lim_{<> \to <>}<>]], { i(1), i(2), i(0) }, { delimiters = '<>' }), { condition = math }),
   s('sum', fmt([[\sum_{<>}^{<>}<>]], { i(1), i(2), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'iiint', wordTrig = false }, fmt([[\iiint_{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'voiint', wordTrig = false }, fmt([[\varoiint_{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'oint', wordTrig = false }, fmt([[\oint_{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'oiint', wordTrig = false }, fmt([[\oiint_{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
+  s({ trig = 'iint', wordTrig = false }, fmt([[\iint_{<>}<>]], { i(1), i(0) }, { delimiters = '<>' }), { condition = math }),
   s({ trig = 'int', wordTrig = false }, fmt([[\int_{<>}^{<>}<>]], { i(1), i(2), i(0) }, { delimiters = '<>' }), { condition = math }),
   -- Square
   s({ trig = 'sr', wordTrig = false }, { t '^2' }, { condition = math }),
