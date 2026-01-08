@@ -169,7 +169,7 @@ vim.o.inccommand = 'split'
 vim.o.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.o.scrolloff = 10
+vim.o.scrolloff = 1
 
 -- if performing an operation that would fail due to unsaved changes in the buffer (like `:q`),
 -- instead raise a dialog asking if you wish to save the current file(s)
@@ -283,6 +283,16 @@ end
 ---@type vim.Option
 local rtp = vim.opt.rtp
 rtp:prepend(lazypath)
+
+-- [[ Python Provider ]]
+-- Requires that a venv is setup in ~/.config/nvim/.venv
+-- cd ~/.config/nvim
+-- uv venv
+-- uv pip install neovim
+local venv_python = vim.fn.stdpath 'config' .. '/.venv/bin/python'
+if vim.fn.executable(venv_python) == 1 then
+  vim.g.python3_host_prog = venv_python
+end
 
 -- [[ Configure and install plugins ]]
 --
@@ -868,6 +878,7 @@ require('lazy').setup({
       vim.g.vimtex_compiler_latexmk = {
         options = {
           '-verbose',
+          '-lualatex',
           '-file-line-error',
           '-synctex=1',
           '-interaction=nonstopmode',
