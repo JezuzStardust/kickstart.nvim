@@ -226,24 +226,20 @@ local function create_latex_figure()
   -- 1. Prompt for path with native file completion enabled
   -- Usage: Type "Fig<Tab>Vec<Tab>my_fig.tex"
   local filepath = vim.fn.input('Figure path: ', 'Figures/', 'file')
-
   if not filepath or filepath == '' then
     print 'Operation cancelled'
     return
   end
-
   -- 2. Extract components
   -- filename_no_ext: e.g., "my_fig"
   -- directory: e.g., "Figures/Vectors"
   local filename_no_ext = vim.fn.fnamemodify(filepath, ':t:r')
   local directory = vim.fn.fnamemodify(filepath, ':h')
   local template_path = 'template-figure.tex'
-
   -- 3. Create directory if it doesn't exist
   if vim.fn.isdirectory(directory) == 0 then
     vim.fn.mkdir(directory, 'p')
   end
-
   -- 4. Copy template to the new path
   if vim.fn.filereadable(template_path) == 1 then
     -- Using 'cp' (Linux/macOS). For Windows, use 'copy'
@@ -252,60 +248,42 @@ local function create_latex_figure()
     print 'Error: template-figure.tex not found in project root!'
     return
   end
-
   -- 5. Insert macro with ONLY the filename (skips the path)
   local macro = string.format('\\myincludepicture{%s}', filename_no_ext)
   vim.api.nvim_put({ macro }, 'c', true, true)
-
   -- 6. Open the new file
   vim.cmd('edit ' .. filepath)
 end
-
--- Keybinding
 vim.keymap.set('n', '<leader>nf', create_latex_figure, { desc = 'Create LaTeX figure from template' })
 
--- local function create_latex_figure()
---   -- 1. Prompt for the full path (e.g., Figures/Vectors/my_diagram.tex)
---   vim.ui.input({ prompt = 'Figure path: ', default = 'Figures/' }, function(filepath)
---     if not filepath or filepath == '' then
---       return
---     end
---
---     -- 2. Extract components
---     -- filename_ext: my_diagram.tex, filename_no_ext: my_diagram
---     local filename_ext = vim.fn.fnamemodify(filepath, ':t')
---     local filename_no_ext = vim.fn.fnamemodify(filepath, ':r')
---     local directory = vim.fn.fnamemodify(filepath, ':h')
---     local template_path = 'template-figure.tex' -- Adjust this to your template's location
---
---     -- 3. Create directory if it doesn't exist
---     if vim.fn.isdirectory(directory) == 0 then
---       vim.fn.mkdir(directory, 'p')
---     end
---
---     -- 4. Copy template to new path
---     if vim.fn.filereadable(template_path) == 1 then
---       vim.fn.system { 'cp', template_path, filepath }
---     else
---       print 'Error: template.tex not found!'
---       return
---     end
---
---     -- 5. Insert macro at current cursor position
---     local macro = string.format('\\myincludepicture{%s}', filename_no_ext)
---     vim.api.nvim_put({ macro }, 'c', true, true)
---
---     -- 6. Open the new file in a buffer
---     vim.cmd('edit ' .. filepath)
---   end)
--- end
---
--- -- Keybinding: <leader>nf (New Figure)
--- vim.keymap.set('n', '<leader>nf', create_latex_figure, { desc = 'Create LaTeX figure from template' })
+local function create_latex_problem()
+  local filepath = vim.fn.input('Problem path: ', 'Problems/', 'file')
+
+  if not filepath or filepath == '' then
+    print 'Operation cancelled'
+    return
+  end
+  local filename_no_ext = vim.fn.fnamemodify(filepath, ':t:r')
+  local directory = vim.fn.fnamemodify(filepath, ':h')
+  local template_path = 'template-problem.tex'
+  if vim.fn.isdirectory(directory) == 0 then
+    vim.fn.mkdir(directory, 'p')
+  end
+  if vim.fn.filereadable(template_path) == 1 then
+    -- Using 'cp' (Linux/macOS). For Windows, use 'copy'
+    vim.fn.system { 'cp', template_path, filepath }
+  else
+    print 'Error: template-problem.tex not found in project root!'
+    return
+  end
+  local macro = string.format('\\input{%s}', filename_no_ext)
+  vim.api.nvim_put({ macro }, 'c', true, true)
+  vim.cmd('edit ' .. filepath)
+end
+vim.keymap.set('n', '<leader>np', create_latex_problem, { desc = 'Create LaTeX problem from template' })
 
 -- Keybinds to make split navigation easier.
 --  Use CTRL+<hjkl> to switch between windows
---
 --  See `:help wincmd` for a list of all window commands
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
